@@ -18,57 +18,130 @@ def main(page: ft.Page):
         action="Alright!",
     )
 
-    db = sqlite3.connect('Users.data')
+    db = sqlite3.connect('Users1.data')
     cur = db.cursor()
     cur.execute("""CREATE TABLE IF NOT EXISTS Users ( 
             name TEXT PRIMARY KEY, 
             last_name TEXT,
             otchestvo TEXT,
+            password TEXT,
             age INTEGER, 
             pol TEXT, 
             city TEXT)""")
     db.close()
     def snack_bar_open():
-        page.snack_bar = ft.SnackBar(ft.Text("Вы не заполнили все поля"),bgcolor="GREEN700")
+        page.snack_bar = ft.SnackBar(ft.Text(value="Вы не заполнили все поля"),bgcolor="GREEN700")
         page.snack_bar.open = True
         page.update()
+
     def registration(e):
-        pol=""
         if name_field_reg.value=="":
             snack_bar_open()
         else:
-            if pol_female_field_reg.value==True:
-                pol="Мужской"
-            elif pol_female_field_reg.value==True:
-                pol="Женский"
-            db = sqlite3.connect('Users.data')
+            db = sqlite3.connect('Users1.data')
             cur = db.cursor()
-            cur.execute(f"INSERT INTO Users VALUES('{str(name_field_reg.value)}',"
-                        f"'{str(last_name_field_reg.value)}','{str(otchestvo_field_reg.value)}',"
-                        f"'{int(age_field_reg.value)}','{str(pol)}','{str(city_field_reg.value)}')")
+            values = (
+                str(name_field_reg.value),
+                str(last_name_field_reg.value),
+                str(otchestvo_field_reg.value),
+                str(pas_field_reg.value),
+                int(age_field_reg.value),
+                str(pol_vebor.value),
+                str(city_field_reg.value)
+            )
+            cur.execute(f"INSERT INTO Users (name, last_name, otchestvo, password, age, pol, city)"
+                        f" VALUES(?,?,?,?,?,?,?)",values)
+            db.commit()
+            print(cur.fetchall())
             print("регистр копмл")
             db.commit()
             db.close()
 
+    def vhod_ac(e):
+        user_password=""
+        db = sqlite3.connect('Users1.data')
+        cur = db.cursor()
+        print(1)
+        cur.execute(f"SELECT name,password FROM Users WHERE name AND password='{user_password}' ")
+        user=cur.fetchall()
+        print(user)
+        for row in cur.fetchall():
+            print(1)
+            print(row)
+
+    def close_reg_window():
+        reg_column.visible=False
+        page.update()
+
+    def open_reg_window(e):
+        reg_column.visible=True
+        go_to_reg.visible=False
+        go_to_vhod.visible=False
+        back_start_but.visible = True
+        page.update()
+
+    def open_vhod_window(e):
+        vhod_column.visible=True
+        go_to_reg.visible = False
+        go_to_vhod.visible = False
+        back_start_but.visible = True
+        page.update()
+
+    def close_vhod_window():
+        vhod_column.visible=False
+        page.update()
+
+    def back_start(e):
+        close_vhod_window()
+        close_reg_window()
+        go_to_reg.visible = True
+        go_to_vhod.visible = True
+        back_start_but.visible = False
+        page.update()
 
 
 
 
+
+
+#registr_window_elements
     name_field_reg = ft.TextField(value="", hint_text="Имя", width=300)
     last_name_field_reg = ft.TextField(value="", hint_text="Фамилия", width=300)
     otchestvo_field_reg = ft.TextField(value="", hint_text="Отчество", width=300)
+    pas_field_reg=ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
     age_field_reg = ft.TextField(value="", hint_text="Возраст", width=300)
     city_field_reg = ft.TextField(value="", hint_text="Город", width=300)
     pol_text_reg=ft.Text(value="Выберите пол")
-    pol_female_field_reg = ft.Checkbox(label="Женский",value=True)
-    pol_male_field_reg = ft.Checkbox(label="Мужской",value=True)
+    pol_vebor = ft.RadioGroup(content=ft.Column([
+        ft.Radio(value="Мужской", label="Мужской"),
+        ft.Radio(value="Женский", label="Женский")]))
     reg_but=ft.ElevatedButton(text="Зарегистроваться", on_click=registration)
     page.reg_snackbar = ft.SnackBar(content=ft.Text(f"Вы не заполнили поле {field_not}"),action="alright")
-    reg=ft.Column([name_field_reg,last_name_field_reg,otchestvo_field_reg,
-                   age_field_reg,pol_text_reg,pol_male_field_reg,pol_female_field_reg,city_field_reg,
+    reg=ft.Column([name_field_reg,last_name_field_reg,otchestvo_field_reg,pas_field_reg,
+                   age_field_reg,pol_text_reg,pol_vebor,city_field_reg,
                    reg_but])
     reg_column=ft.Container(content=reg)
+#vhod_window_elements
+    name_field_vhod=ft.TextField(value="", hint_text="Имя")
+    pas_field_vhod = ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
+    vhod_but=ft.ElevatedButton(text="Вход",on_click=vhod_ac)
+    vhod=ft.Column([name_field_vhod,pas_field_vhod,vhod_but])
+    vhod_column=ft.Container(content=vhod)
+
+
+#start_window_elements
+    go_to_reg=ft.ElevatedButton(text="Регистрация",on_click=open_reg_window)
+    go_to_vhod=ft.ElevatedButton(text="Вход",on_click=open_vhod_window)
+    back_start_but=ft.ElevatedButton(text="Назад", on_click=back_start)
+    start = ft.Column([go_to_reg, go_to_vhod, back_start_but])
+    start_column = ft.Container(content=start)
+
     page.add(reg_column)
+    page.add(vhod_column)
+    page.add(start_column)
+    close_reg_window()
+    close_vhod_window()
+    back_start_but.visible=False
     page.update()
 
 ft.app(target=main)
