@@ -2,245 +2,262 @@ import sqlite3
 import flet as ft
 
 def main(page: ft.Page):
-    page.scroll = "always"
-    page.title = "Междуреченск"
-    page.theme_mode = "dark"
-    page.window.width = 350
-    page.window.height = 650
-    page.window.resizable = False
-    page.update()
-    global field_not
-    field_not=""
-
-    page.snack_bar = ft.SnackBar(
-        content=ft.Text("Hello, world!"),
-        action="Alright!",
-    )
-
-    db = sqlite3.connect('Users1.data')
-    cur = db.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS Users ( 
-            name TEXT PRIMARY KEY, 
-            last_name TEXT,
-            otchestvo TEXT,
-            password TEXT,
-            age INTEGER, 
-            pol TEXT, 
-            city TEXT)""")
-    db.close()
-    def snack_bar_open():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Вы не заполнили все поля"),bgcolor="GREEN700")
-        page.snack_bar.open = True
+        page.scroll = "always"
+        page.title = "Междуреченск"
+        page.theme_mode = "dark"
+        page.window.width = 350
+        page.window.height = 650
+        page.window.resizable = False
         page.update()
+        global field_not
+        field_not=""
 
-    def snack_bar_open_whod():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Нет такого пользователя"),bgcolor="GREEN700")
-        page.snack_bar.open = True
-        page.update()
+        questions = [
+            "Каков ваш основной мотив путешествия?",
+            "Какой уровень активности вам подходит?",
+            "Есть ли у вас какие-либо медицинские условия или ограничения по здоровью?",
+            "Необходимы ли вам специальные медикаменты или оборудование во время тура?",
+            "Страдали ли вы в прошлом от каких-либо заболеваний, которые могут повлиять на ваше участие в туристических маршрутах?",
+            "Имеете ли вы аллергии на продукты или медикаменты?",
+            "Сколько времени назад вы проходили медицинское обследование?",
+            "Есть ли у вас ограничения по физическим нагрузкам, которые мы должны учесть при планировании маршрута?",
+            "Удобно ли вам получать первую медицинскую помощь или помощь при необходимости во время тура?",
+            "Что вам больше всего понравилось в предыдущих путешествиях?"
+        ]
 
-    def snack_bar_open_reg():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Такой пользователь уже есть"),bgcolor="GREEN700")
-        page.snack_bar.open = True
-        page.update()
 
-    def registration(e):
-        if any(field.value == "" for field in
-               [name_field_reg, last_name_field_reg, otchestvo_field_reg, pas_field_reg, age_field_reg,
-                city_field_reg]):
-            snack_bar_open()
-        else:
-            try:
-                db = sqlite3.connect('Users1.data')
-                cur = db.cursor()
-                values = (
-                    str(name_field_reg.value),
-                    str(last_name_field_reg.value),
-                    str(otchestvo_field_reg.value),
-                    str(pas_field_reg.value),
-                    int(age_field_reg.value),
-                    str(pol_vebor.value),
-                    str(city_field_reg.value)
-                )
-                cur.execute(
-                    "INSERT INTO Users (name, last_name, otchestvo, password, age, pol, city) VALUES(?,?,?,?,?,?,?)",
-                    values)
-                db.commit()
-            except sqlite3.Error as e:
-                snack_bar_open_reg()
-            finally:
-                cur.close()
-                db.close()
-        open = lambda: page.open(dlg_reg)
-        open()
-
-    def vhod_ac(e):
-        admin="Ilay"
-        admin_pas="3101"
+        page.snack_bar = ft.SnackBar(
+            content=ft.Text("Hello, world!"),
+            action="Alright!",
+        )
 
         db = sqlite3.connect('Users1.data')
         cur = db.cursor()
-        cur.execute("SELECT * FROM Users WHERE name=?", (name_field_vhod.value,))
-        user=cur.fetchall()
-        if user==[]:
-            snack_bar_open_whod()
-        for row in user:
-            if row[0]==admin:
-                if row[3]==admin_pas:
-                    open_admin_panel()
-                else:
-                    pass
-            else:
-                if row[3]==pas_field_vhod.value:
-                    open_user_panel()
-                else:
-                    pass
-        cur.close()
+        cur.execute("""CREATE TABLE IF NOT EXISTS Users ( 
+                name TEXT PRIMARY KEY, 
+                last_name TEXT,
+                otchestvo TEXT,
+                password TEXT,
+                age INTEGER, 
+                pol TEXT, 
+                city TEXT)""")
         db.close()
+        def snack_bar_open():
+            page.snack_bar = ft.SnackBar(ft.Text(value="Вы не заполнили все поля"),bgcolor="GREEN700")
+            page.snack_bar.open = True
+            page.update()
+
+        def snack_bar_open_whod():
+            page.snack_bar = ft.SnackBar(ft.Text(value="Нет такого пользователя"),bgcolor="GREEN700")
+            page.snack_bar.open = True
+            page.update()
+
+        def snack_bar_open_reg():
+            page.snack_bar = ft.SnackBar(ft.Text(value="Такой пользователь уже есть"),bgcolor="GREEN700")
+            page.snack_bar.open = True
+            page.update()
+
+        def registration(e):
+            if any(field.value == "" for field in
+                   [name_field_reg, last_name_field_reg, otchestvo_field_reg, pas_field_reg, age_field_reg,
+                    city_field_reg]):
+                snack_bar_open()
+            else:
+                try:
+                    db = sqlite3.connect('Users1.data')
+                    cur = db.cursor()
+                    values = (
+                        str(name_field_reg.value),
+                        str(last_name_field_reg.value),
+                        str(otchestvo_field_reg.value),
+                        str(pas_field_reg.value),
+                        int(age_field_reg.value),
+                        str(pol_vebor.value),
+                        str(city_field_reg.value)
+                    )
+                    cur.execute(
+                        "INSERT INTO Users (name, last_name, otchestvo, password, age, pol, city) VALUES(?,?,?,?,?,?,?)",
+                        values)
+                    db.commit()
+                    open = lambda: page.open(dlg_reg)
+                    open()
+                except sqlite3.Error as e:
+                    snack_bar_open_reg()
+                finally:
+                    cur.close()
+                    db.close()
+
+
+        def vhod_ac(e):
+            admin="Ilay"
+            admin_pas="3101"
+
+            db = sqlite3.connect('Users1.data')
+            cur = db.cursor()
+            cur.execute("SELECT * FROM Users WHERE name=?", (name_field_vhod.value,))
+            user=cur.fetchall()
+            if user==[]:
+                snack_bar_open_whod()
+            for row in user:
+                if row[0]==admin:
+                    if row[3]==admin_pas:
+                        open_admin_panel()
+                    else:
+                        pass
+                else:
+                    if row[3]==pas_field_vhod.value:
+                        open_user_panel()
+                    else:
+                        pass
+            cur.close()
+            db.close()
 
 
 
-    def close_reg_window():
-        reg_column.visible=False
-        page.update()
+        def close_reg_window():
+            reg_column.visible=False
+            page.update()
 
-    def open_admin_panel():
+        def open_admin_panel():
+            close_vhod_window()
+            close_reg_window()
+            admin_text.visible=True
+            page.update()
+
+        def open_user_panel():
+            close_vhod_window()
+            close_reg_window()
+            user_text.visible=True
+            page.update()
+
+        def close_user_panel():
+            user_text.visible=False
+
+        def close_admin_panel():
+            admin_text.visible=False
+
+        def open_reg_window(e):
+            reg_column.visible=True
+            go_to_reg.visible=False
+            go_to_vhod.visible=False
+            back_start_but.visible = True
+            page.update()
+
+        def open_vhod_window(e):
+            close_reg_window()
+            vhod_column.visible=True
+            go_to_reg.visible = False
+            go_to_vhod.visible = False
+            back_start_but.visible = True
+            page.update()
+
+        def open_vhod_window_lambda(e):
+            open_vhod_window(1)
+            close = lambda: page.close(dlg_reg)
+            close()
+            page.update()
+
+        def close_vhod_window():
+            vhod_column.visible=False
+            page.update()
+
+        def back_start(e):
+            null_values()
+            close_user_panel()
+            close_admin_panel()
+            close_vhod_window()
+            close_reg_window()
+            go_to_reg.visible = True
+            go_to_vhod.visible = True
+            back_start_but.visible = False
+            page.update()
+
+        def null_values():
+            name_field_vhod.value=None
+            name_field_reg.value=None
+            last_name_field_reg.value=None
+            otchestvo_field_reg.value=None
+            pas_field_vhod.value=None
+            pas_field_reg.value=None
+            age_field_reg.value=None
+            city_field_reg.value=None
+            pol_vebor.value=None
+            page.update()
+
+        def start1():
+            close_vhod_window()
+            close_reg_window()
+            back_start_but.visible=False
+            admin_text.visible=False
+            user_text.visible=False
+            page.update()
+
+        def close_dlg(e):
+            close = lambda: page.close(dlg_reg)
+            close()
+
+    #registr_window_elements
+        name_field_reg = ft.TextField(value="", hint_text="Никнейм", width=300)
+        last_name_field_reg = ft.TextField(value="", hint_text="Имя", width=300)
+        otchestvo_field_reg = ft.TextField(value="", hint_text="Фамилия", width=300)
+        pas_field_reg=ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
+        age_field_reg = ft.TextField(value="", hint_text="Возраст", width=300)
+        city_field_reg = ft.TextField(value="", hint_text="Город", width=300)
+        pol_text_reg=ft.Text(value="Выберите пол")
+        pol_vebor = ft.RadioGroup(content=ft.Column([
+            ft.Radio(value="Мужской", label="Мужской"),
+            ft.Radio(value="Женский", label="Женский")]))
+        reg_but=ft.ElevatedButton(text="Зарегистроваться", on_click=registration)
+        page.reg_snackbar = ft.SnackBar(content=ft.Text(f"Вы не заполнили поле {field_not}"),action="alright")
+        reg=ft.Column([name_field_reg,last_name_field_reg,otchestvo_field_reg,pas_field_reg,
+                       age_field_reg,pol_text_reg,pol_vebor,city_field_reg,
+                       reg_but])
+        reg_column=ft.Container(content=reg)
+
+        dlg_reg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Подтвердите пожалуйста"),
+            content=ft.Text("Хотите перейти ко входу?"),
+            actions=[
+                ft.TextButton("Да", on_click=open_vhod_window_lambda),
+                ft.TextButton("Нет", on_click=close_dlg),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+    #vhod_window_elements
+        name_field_vhod=ft.TextField(value="", hint_text="Имя")
+        pas_field_vhod = ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
+        vhod_but=ft.ElevatedButton(text="Вход",on_click=vhod_ac)
+        vhod=ft.Column([name_field_vhod,pas_field_vhod,vhod_but])
+        vhod_column=ft.Container(content=vhod)
+
+
+    #start_window_elements
+        go_to_reg=ft.ElevatedButton(text="Регистрация",on_click=open_reg_window)
+        go_to_vhod=ft.ElevatedButton(text="Вход",on_click=open_vhod_window)
+        back_start_but=ft.ElevatedButton(text="Назад", on_click=back_start)
+        start = ft.Column([go_to_reg, go_to_vhod, back_start_but])
+        start_column = ft.Container(content=start)
+
+    #admin_panel_elements
+        admin_text=ft.Text(value="Admin text")
+
+
+    #user_panel_elementes
+        user_text=ft.Text(value="User text")
+
+
+        image=ft.Image(src=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMTIB_lAcv8_itguNaAIOdfNjXMRFTSaxA6g&s",
+                    width=300,
+                    height=300)
+        all_column=ft.Column([admin_text,user_text,reg_column,vhod_column,start_column])
+        st = ft.Stack([image,all_column])
+        image.visible=True
+        page.add(st)
+        close_reg_window()
         close_vhod_window()
-        close_reg_window()
-        admin_text.visible=True
+        start1()
         page.update()
 
-    def open_user_panel():
-        close_vhod_window()
-        close_reg_window()
-        user_text.visible=True
-        page.update()
-
-    def close_user_panel():
-        user_text.visible=False
-
-    def close_admin_panel():
-        admin_text.visible=False
-
-    def open_reg_window(e):
-        reg_column.visible=True
-        go_to_reg.visible=False
-        go_to_vhod.visible=False
-        back_start_but.visible = True
-        page.update()
-
-    def open_vhod_window(e):
-        close_reg_window()
-        vhod_column.visible=True
-        go_to_reg.visible = False
-        go_to_vhod.visible = False
-        back_start_but.visible = True
-        page.update()
-
-    def open_vhod_window_lambda(e):
-        open_vhod_window(1)
-        close = lambda: page.close(dlg_reg)
-        close()
-        page.update()
-
-    def close_vhod_window():
-        vhod_column.visible=False
-        page.update()
-
-    def back_start(e):
-        null_values()
-        close_user_panel()
-        close_admin_panel()
-        close_vhod_window()
-        close_reg_window()
-        go_to_reg.visible = True
-        go_to_vhod.visible = True
-        back_start_but.visible = False
-        page.update()
-
-    def null_values():
-        name_field_vhod.value=None
-        name_field_reg.value=None
-        last_name_field_reg.value=None
-        otchestvo_field_reg.value=None
-        pas_field_vhod.value=None
-        pas_field_reg.value=None
-        age_field_reg.value=None
-        city_field_reg.value=None
-        pol_vebor.value=None
-        page.update()
-
-    def start1():
-        close_vhod_window()
-        close_reg_window()
-        back_start_but.visible=False
-        admin_text.visible=False
-        user_text.visible=False
-        page.update()
-
-    def close_dlg(e):
-        close = lambda: page.close(dlg_reg)
-        close()
-
-#registr_window_elements
-    name_field_reg = ft.TextField(value="", hint_text="Никнейм", width=300)
-    last_name_field_reg = ft.TextField(value="", hint_text="Имя", width=300)
-    otchestvo_field_reg = ft.TextField(value="", hint_text="Фамилия", width=300)
-    pas_field_reg=ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
-    age_field_reg = ft.TextField(value="", hint_text="Возраст", width=300)
-    city_field_reg = ft.TextField(value="", hint_text="Город", width=300)
-    pol_text_reg=ft.Text(value="Выберите пол")
-    pol_vebor = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Мужской", label="Мужской"),
-        ft.Radio(value="Женский", label="Женский")]))
-    reg_but=ft.ElevatedButton(text="Зарегистроваться", on_click=registration)
-    page.reg_snackbar = ft.SnackBar(content=ft.Text(f"Вы не заполнили поле {field_not}"),action="alright")
-    reg=ft.Column([name_field_reg,last_name_field_reg,otchestvo_field_reg,pas_field_reg,
-                   age_field_reg,pol_text_reg,pol_vebor,city_field_reg,
-                   reg_but])
-    reg_column=ft.Container(content=reg)
-
-    dlg_reg = ft.AlertDialog(
-        modal=True,
-        title=ft.Text("Подтвердите пожалуйста"),
-        content=ft.Text("Хотите перейти ко входу?"),
-        actions=[
-            ft.TextButton("Да", on_click=open_vhod_window_lambda),
-            ft.TextButton("Нет", on_click=close_dlg),
-        ],
-        actions_alignment=ft.MainAxisAlignment.END,
-    )
-#vhod_window_elements
-    name_field_vhod=ft.TextField(value="", hint_text="Имя")
-    pas_field_vhod = ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
-    vhod_but=ft.ElevatedButton(text="Вход",on_click=vhod_ac)
-    vhod=ft.Column([name_field_vhod,pas_field_vhod,vhod_but])
-    vhod_column=ft.Container(content=vhod)
-
-
-#start_window_elements
-    go_to_reg=ft.ElevatedButton(text="Регистрация",on_click=open_reg_window)
-    go_to_vhod=ft.ElevatedButton(text="Вход",on_click=open_vhod_window)
-    back_start_but=ft.ElevatedButton(text="Назад", on_click=back_start)
-    start = ft.Column([go_to_reg, go_to_vhod, back_start_but])
-    start_column = ft.Container(content=start)
-
-#admin_panel_elements
-    admin_text=ft.Text(value="Admin text")
-
-
-#user_panel_elementes
-    user_text=ft.Text(value="User text")
-
-
-    image=ft.Image(src=f"https://www.google.com/imgres?q=%D0%BA%D0%B0%D1%80%D1%82%D0%B8%D0%BD%D0%BA%D0%B8%20%D1%82%D1%80%D1%83%D0%B1&imgurl=https%3A%2F%2Fpr-metall.ru%2Fwp-content%2Fuploads%2F2022%2F08%2Flib_1224003_54803584_3.jpg&imgrefurl=https%3A%2F%2Fpr-metall.ru%2Fstati%2Fgde-primenyat-i-dlya-chego-ispolzovat-metallicheskie-truby&docid=vAcMZgqMCSGyzM&tbnid=M8RI8ApmUC4gfM&vet=12ahUKEwjcmOqJgc-JAxW7CRAIHdrlIJ8QM3oECEwQAA..i&w=800&h=600&hcb=2&ved=2ahUKEwjcmOqJgc-JAxW7CRAIHdrlIJ8QM3oECEwQAA",
-                width=300,
-                height=300)
-
-    st = ft.Stack([image,reg_column,vhod_column,start_column,admin_text,user_text],width=300,height=500)
-    page.add(st)
-    close_reg_window()
-    close_vhod_window()
-    start1()
-    page.update()
 
 ft.app(target=main)
