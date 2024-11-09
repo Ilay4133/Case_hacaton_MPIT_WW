@@ -11,6 +11,10 @@ def main(page: ft.Page):
     page.update()
     global field_not
     field_not=""
+    global new_user_enter
+    new_user_enter=0
+    global new_user_name
+    new_user_name=""
     page.snack_bar = ft.SnackBar(
         content=ft.Text("Hello, world!"),
         action="Alright!",
@@ -25,7 +29,20 @@ def main(page: ft.Page):
             age INTEGER, 
             pol TEXT, 
             city TEXT)""")
+
+    db = sqlite3.connect('Users1_anketa.data')
+    cur = db.cursor()
+    cur.execute("""CREATE TABLE IF NOT EXISTS Users_anketa ( 
+                name TEXT PRIMARY KEY, 
+                ans1 TEXT,
+                ans2 TEXT,
+                ans3 TEXT,
+                ans4 TEXT, 
+                ans5 TEXT, 
+                ans6 TEXT,
+                ans7 TEXT)""")
     db.close()
+
     def snack_bar_open():
         page.snack_bar = ft.SnackBar(ft.Text(value="Вы не заполнили все поля"),bgcolor="GREEN700")
         page.snack_bar.open = True
@@ -38,6 +55,11 @@ def main(page: ft.Page):
         page.snack_bar = ft.SnackBar(ft.Text(value="Такой пользователь уже есть"),bgcolor="GREEN700")
         page.snack_bar.open = True
         page.update()
+    def snack_bar_open_anket():
+        page.snack_bar = ft.SnackBar(ft.Text(value="Не все поля заполнены"), bgcolor="GREEN700")
+        page.snack_bar.open = True
+        page.update()
+
     def registration(e):
         if any(field.value == "" for field in
                [name_field_reg, last_name_field_reg, otchestvo_field_reg, pas_field_reg, age_field_reg,
@@ -98,11 +120,16 @@ def main(page: ft.Page):
         admin_text.visible=True
         page.update()
     def open_user_panel():
+        global new_user_name
+        if new_user_enter==1:
+            ans_q.visible=True
+            new_user_name=name_field_vhod.value
         close_vhod_window()
         close_reg_window()
         user_text.visible=True
         page.update()
     def close_user_panel():
+        ans_q.visible=False
         user_text.visible=False
     def close_admin_panel():
         admin_text.visible=False
@@ -120,6 +147,7 @@ def main(page: ft.Page):
         back_start_but.visible = True
         page.update()
     def open_vhod_window_lambda(e):
+        global new_user_enter
         new_user_enter=1
         open_vhod_window(1)
         close = lambda: page.close(dlg_reg)
@@ -161,7 +189,26 @@ def main(page: ft.Page):
         close()
 
     def otvetit_na_q(e):
-        pass
+        if any(ans_q_column.value == None for field in
+               [new_user_name, ans_vebor1, ans_vebor2,
+                ans_vebor3, ans_vebor4, ans_vebor5,
+                ans_vebor6,ans_vebor7]):
+        else:
+            db = sqlite3.connect('Users1_anketa.data')
+            cur = db.cursor()
+            ans_values=(str(new_user_name),
+                        str(ans_vebor1.value),
+                        str(ans_vebor2.value),
+                        str(ans_vebor3.value),
+                        str(ans_vebor4.value),
+                        str(ans_vebor5.value),
+                        str(ans_vebor6.value),
+                        str(ans_vebor7.value))
+            cur.execute("INSERT INTO Users_anketa (name,ans1,ans2,ans3,ans4,ans5,ans6,ans7) VALUES(?,?,?,?,?,?,?,?)",ans_values)
+            cur.execute("SELECT * FROM Users_anketa WHERE name=?", (new_user_name,))
+            user = cur.fetchall()
+            print("Вставленный пользователь:", user)
+            db.close()
 
 
     #reistr_window_elements
@@ -191,20 +238,24 @@ def main(page: ft.Page):
         ],
         actions_alignment=ft.MainAxisAlignment.END,
     )
+
     #vhd_window_elements
     name_field_vhod=ft.TextField(value="", hint_text="Имя")
     pas_field_vhod = ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
     vhod_but=ft.ElevatedButton(text="Вход",on_click=vhod_ac)
     vhod=ft.Column([name_field_vhod,pas_field_vhod,vhod_but])
     vhod_column=ft.Container(content=vhod)
+
     #strt_window_elements
     go_to_reg=ft.ElevatedButton(text="Регистрация",on_click=open_reg_window)
     go_to_vhod=ft.ElevatedButton(text="Вход",on_click=open_vhod_window)
     back_start_but=ft.ElevatedButton(text="Назад", on_click=back_start)
     start = ft.Column([go_to_reg, go_to_vhod, back_start_but])
     start_column = ft.Container(content=start)
+
     #adin_panel_elements
     admin_text=ft.Text(value="Admin text")
+
     #user_panel_elementes
     user_text=ft.Text(value="User text")
     image=ft.Image(src=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMTIB_lAcv8_itguNaAIOdfNjXMRFTSaxA6g&s",
@@ -213,7 +264,8 @@ def main(page: ft.Page):
     all_column=ft.Column([admin_text,user_text,reg_column,vhod_column,start_column])
     st = ft.Stack([image,all_column])
     image.visible=True
-    #anketa
+
+    #anketa_elements
     q1 = ft.Text(value="Каков ваш основной мотив путешествия?")
     q2 = ft.Text(value="Какой уровень активности вам подходит?")
     q3 = ft.Text(value="Есть ли у вас какие-либо медицинские условия или ограничения по здоровью?")
