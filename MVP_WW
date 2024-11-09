@@ -189,10 +189,12 @@ def main(page: ft.Page):
         close()
 
     def otvetit_na_q(e):
-        if any(ans_q_column.value == None for field in
-               [new_user_name, ans_vebor1, ans_vebor2,
-                ans_vebor3, ans_vebor4, ans_vebor5,
-                ans_vebor6,ans_vebor7]):
+        if any(fild == None for fild in
+               [ans_vebor1.value, ans_vebor2.value,
+                ans_vebor3.value, ans_vebor4.value,
+                ans_vebor5.value, ans_vebor6.value,
+                ans_vebor7.value]):
+            snack_bar_open_anket()
         else:
             db = sqlite3.connect('Users1_anketa.data')
             cur = db.cursor()
@@ -313,6 +315,9 @@ def main(page: ft.Page):
     ans_q_column=(ft.Column([q1,ans_vebor1,q2,ans_vebor2,q3,ans_vebor3,
                              q4,ans_vebor4,q5,ans_vebor5,q6,ans_vebor6,
                              q7,ans_vebor7,otvetit]))
+    ans_column=(ft.Column([ans_vebor1,ans_vebor2,ans_vebor3,
+                           ans_vebor4,ans_vebor5,ans_vebor6,
+                           ans_vebor7]))
     ans_q=ft.Container(content=ans_q_column)
 
     page.add(ans_q)
