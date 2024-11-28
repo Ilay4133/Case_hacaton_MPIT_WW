@@ -1,6 +1,5 @@
 import sqlite3
 import flet as ft
-
 def main(page: ft.Page):
     page.scroll = "always"
     page.title = "Междуреченск"
@@ -21,46 +20,45 @@ def main(page: ft.Page):
     )
     db = sqlite3.connect('Users1.data')
     cur = db.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS Users ( 
-            name TEXT PRIMARY KEY, 
+    cur.execute("""CREATE TABLE IF NOT EXISTS Users (
+            name TEXT PRIMARY KEY,
             last_name TEXT,
             otchestvo TEXT,
             password TEXT,
-            age INTEGER, 
-            pol TEXT, 
+            age INTEGER,
+            pol TEXT,
             city TEXT)""")
-
     db = sqlite3.connect('Users1_anketa.data')
     cur = db.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS Users_anketa ( 
-                name TEXT PRIMARY KEY, 
+    cur.execute("""CREATE TABLE IF NOT EXISTS Users_anketa (
+                name TEXT PRIMARY KEY,
                 ans1 TEXT,
                 ans2 TEXT,
                 ans3 TEXT,
-                ans4 TEXT, 
-                ans5 TEXT, 
+                ans4 TEXT,
+                ans5 TEXT,
                 ans6 TEXT,
                 ans7 TEXT)""")
     db.close()
-
     def snack_bar_open():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Вы не заполнили все поля"),bgcolor="GREEN700")
+        page.snack_bar = ft.SnackBar(ft.Text(value="Вы не заполнили все поля",color='#FFFFFF'),bgcolor='#1DB100')
         page.snack_bar.open = True
         page.update()
     def snack_bar_open_whod():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Нет такого пользователя"),bgcolor="GREEN700")
+        page.snack_bar = ft.SnackBar(ft.Text(value="Нет такого пользователя",color='#FFFFFF'),bgcolor='#1DB100')
         page.snack_bar.open = True
         page.update()
     def snack_bar_open_reg():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Такой пользователь уже есть"),bgcolor="GREEN700")
+        page.snack_bar = ft.SnackBar(ft.Text(value="Такой пользователь уже есть",color='#FFFFFF'),bgcolor='#1DB100')
         page.snack_bar.open = True
         page.update()
     def snack_bar_open_anket():
-        page.snack_bar = ft.SnackBar(ft.Text(value="Не все поля заполнены"), bgcolor="GREEN700")
+        page.snack_bar = ft.SnackBar(ft.Text(value="Не все поля заполнены",color='#FFFFFF'), bgcolor='#1DB100')
         page.snack_bar.open = True
         page.update()
-
     def registration(e):
+        global new_user_enter
+        new_user_enter=1
         if any(field.value == "" for field in
                [name_field_reg, last_name_field_reg, otchestvo_field_reg, pas_field_reg, age_field_reg,
                 city_field_reg]):
@@ -101,12 +99,20 @@ def main(page: ft.Page):
         for row in user:
             if row[0]==admin:
                 if row[3]==admin_pas:
+                    page.bgcolor = '#E8FFE0'
+                    image.visible = False
                     open_admin_panel()
                 else:
                     pass
             else:
                 if row[3]==pas_field_vhod.value:
+                    page.bgcolor = '#E8FFE0'
+                    image.visible = False
+                    if new_user_enter!=1:
+                        old_user_redpochteniya()
+                        image.visible = False
                     open_user_panel()
+                    profil_inf()
                 else:
                     pass
         cur.close()
@@ -120,19 +126,37 @@ def main(page: ft.Page):
         admin_text.visible=True
         page.update()
     def open_user_panel():
+        prof_inf.visible = False
         global new_user_name
+        new_user_name=name_field_vhod.value
+        profile_conteiner.visible = False
+        page.navigation_bar.visible = True
+        search_container.visible=True
+        open_glav_user_page()
         if new_user_enter==1:
+            search_container.visible=False
+            profile_conteiner.visible = False
+            page.navigation_bar.visible = False
+            column_glav.visible = False
             ans_q.visible=True
             new_user_name=name_field_vhod.value
+            page.bgcolor = '#00200E'
+        image.visible=False
         close_vhod_window()
         close_reg_window()
-        user_text.visible=True
+        back_start_but.visible=False
+        page.bgcolor = '#E8FFE0'
         page.update()
     def close_user_panel():
+        image.visible = True
         ans_q.visible=False
         user_text.visible=False
+        page.bgcolor = None
+        page.update()
     def close_admin_panel():
+        image.visible = True
         admin_text.visible=False
+        page.bgcolor=None
     def open_reg_window(e):
         reg_column.visible=True
         go_to_reg.visible=False
@@ -187,7 +211,6 @@ def main(page: ft.Page):
     def close_dlg(e):
         close = lambda: page.close(dlg_reg)
         close()
-
     def otvetit_na_q(e):
         if any(fild == None for fild in
                [ans_vebor1.value, ans_vebor2.value,
@@ -208,121 +231,460 @@ def main(page: ft.Page):
                         str(ans_vebor7.value))
             cur.execute("INSERT INTO Users_anketa (name,ans1,ans2,ans3,ans4,ans5,ans6,ans7) VALUES(?,?,?,?,?,?,?,?)",ans_values)
             cur.execute("SELECT * FROM Users_anketa WHERE name=?", (new_user_name,))
-            user = cur.fetchall()
-            print("Вставленный пользователь:", user)
+            db.commit()
             db.close()
-
-
+            new_user_predpochteniya()
+            ans_q_column.visible=False
+            page.update()
+    def new_user_predpochteniya():
+        if (ans_vebor1.value == "Отдых и релаксация" ) \
+                and (ans_vebor2.value == "Низкий (спокойные прогулки)" or ans_vebor2.value == "Средний(некоторые физические нагрузки)") \
+                and (ans_vebor3.value == "Нет, у меня нет ограничений" or ans_vebor3.value == "Да, страдаю от аллергий") \
+                and (ans_vebor7.value == "Красивые пейзажи"):
+            Ozero_vepusknikov.visible=True
+            dolina_tesaychi_ruchuv.visible=True
+            burl_reki_i_meditaciya_rebalki.visible=True
+        if (ans_vebor1.value=="Отдых и релаксация" or ans_vebor1.value=="Приключения и новые впечатления")\
+                and (ans_vebor2.value=="Низкий (спокойные прогулки)" or ans_vebor2.value=="Средний(некоторые физические нагрузки)") \
+                and (ans_vebor3.value=="Нет, у меня нет ограничений" or ans_vebor3.value=="Да, страдаю от аллергий")\
+                and (ans_vebor4.value!="Да у меня были серьезные заболевания")\
+                and (ans_vebor5.value=="Нет, у меня нет аллергий" or ans_vebor5.value=="Да на определенные продукты")\
+                and (ans_vebor6.value=="Нет, никаких ограничений" or ans_vebor6.value=="Да, мне нельзя поднимать тяжести")\
+                and (ans_vebor7.value=="Красивые пейзажи"):
+            vershine_podnebesneh.visible = False
+            Ygus.visible=True
+            Terenkyr.visible=True
+            vverh_v_nebo_i_vniz_pod_zemlu.visible=True
+        elif (ans_vebor1.value=="Приключения и новые впечатления")\
+                and (ans_vebor2.value=="Высокий (активные виды спорта)" or ans_vebor2.value=="Средний(некоторые физические нагрузки)" or ans_vebor2.value=="Очень высокий (экстремальные виды спорта)") \
+                and (ans_vebor3.value=="Нет, у меня нет ограничений" or ans_vebor3.value=="Да, страдаю от аллергий")\
+                and (ans_vebor4.value!="Да у меня были серьезные заболевания" and ans_vebor4.value!="Не уверен, возможно были" )\
+                and (ans_vebor5.value=="Нет, у меня нет аллергий" or ans_vebor5.value=="Да на определенные продукты")\
+                and (ans_vebor6.value=="Нет, никаких ограничений")\
+                and (ans_vebor7.value=="Красивые пейзажи"):
+            Tramplinney_center.visible = True
+            vekat_gore.visible = True
+            proity_sport_trasy.visible = True
+            dolini_5_metr_puhl.visible=True
+            probegatsa_vverh_do_nebes.visible = True
+        elif (ans_vebor1.value=="Приключения и новые впечатления")\
+                and (ans_vebor2.value=="Низкий (спокойные прогулки)" or ans_vebor2.value=="Средний(некоторые физические нагрузки)")\
+                and (ans_vebor3.value=="Нет, у меня нет ограничений" or ans_vebor3.value=="Да, страдаю от аллергий")\
+                and (ans_vebor7.value=="Красивые пейзажи"):
+            podnatsa_na_vershinu_na_podyumnike.visible = True
+        search_container.visible=True
+        profile_conteiner.visible = False
+        page.navigation_bar.visible = True
+        page.bgcolor = '#E8FFDF'
+        open_glav_user_page()
+    def profil_inf():
+        db = sqlite3.connect('Users1.data')
+        cur = db.cursor()
+        cur.execute("SELECT * FROM Users WHERE name=?", (name_field_vhod.value,))
+        user=cur.fetchall()
+        for row in user:
+            prof_inf.value=f"Имя: {row[1]}\nФамилия: {row[2]}\nПочта: {row[0]}@gmail.com\nДата рождения: {2024-row[4]} год"
+            page.add(prof_inf)
+            page.update()
+    def old_user_redpochteniya():
+        db = sqlite3.connect('Users1_anketa.data')
+        cur = db.cursor()
+        name=name_field_vhod.value
+        print(name)
+        cur.execute("SELECT * FROM Users_anketa WHERE name=?", (name,))
+        user = cur.fetchall()
+        print(user)
+        if user==[]:
+            snack_bar_open_whod()
+        for row in user:
+            if (row[1] == "Отдых и релаксация") \
+                    and (row[2] == "Низкий (спокойные прогулки)" or row[2] == "Средний(некоторые физические нагрузки)") \
+                    and (row[3] == "Нет, у меня нет ограничений" or row[3] == "Да, страдаю от аллергий") \
+                    and (ans_vebor7.value == "Красивые пейзажи"):
+                Ozero_vepusknikov.visible = True
+                dolina_tesaychi_ruchuv.visible = True
+                burl_reki_i_meditaciya_rebalki.visible = True
+                page.update()
+            if (row[1] == "Отдых и релаксация" or row[1] == "Приключения и новые впечатления") \
+                    and (row[2] == "Низкий (спокойные прогулки)" or row[2] == "Средний(некоторые физические нагрузки)") \
+                    and (row[3] == "Нет, у меня нет ограничений" or row[3] == "Да, страдаю от аллергий") \
+                    and (row[4] != "Да у меня были серьезные заболевания") \
+                    and (row[5] == "Нет, у меня нет аллергий" or row[5] == "Да на определенные продукты") \
+                    and (row[6] == "Нет, никаких ограничений" or row[6] == "Да, мне нельзя поднимать тяжести") \
+                    and (row[7] == "Красивые пейзажи"):
+                vershine_podnebesneh.visible = False
+                Ygus.visible = True
+                Terenkyr.visible = True
+                vverh_v_nebo_i_vniz_pod_zemlu.visible = True
+                page.update()
+            elif (row[1] == "Приключения и новые впечатления") \
+                    and (row[2] == "Высокий (активные виды спорта)" or row[2] == "Средний(некоторые физические нагрузки)" or ans_vebor2.value == "Очень высокий (экстремальные виды спорта)") \
+                    and (row[3] == "Нет, у меня нет ограничений" or row[3] == "Да, страдаю от аллергий") \
+                    and (row[4] != "Да у меня были серьезные заболевания" and row[4] != "Не уверен, возможно были") \
+                    and (row[5] == "Нет, у меня нет аллергий" or row[5] == "Да на определенные продукты") \
+                    and (row[6] == "Нет, никаких ограничений") \
+                    and (row[7] == "Красивые пейзажи"):
+                Tramplinney_center.visible = True
+                vekat_gore.visible = True
+                proity_sport_trasy.visible = True
+                dolini_5_metr_puhl.visible = True
+                probegatsa_vverh_do_nebes.visible = True
+                page.update()
+            elif (row[1]== "Приключения и новые впечатления") \
+                    and (row[2] == "Низкий (спокойные прогулки)" or row[2] == "Средний(некоторые физические нагрузки)") \
+                    and (row[3] == "Нет, у меня нет ограничений" or row[3] == "Да, страдаю от аллергий") \
+                    and (row[7] == "Красивые пейзажи" or row[7] =="Вкусная еда"):
+                podnatsa_na_vershinu_na_podyumnike.visible = True
+                page.update()
+        cur.close()
+        db.close()
+    def nachat(e):
+        start_text.visible=False
+        start_but.visible=False
+        go_to_vhod.visible=True
+        go_to_reg.visible=True
+        page.update()
+    def open_glav_user_page():
+        profile_conteiner.visible = False
+        page.navigation_bar.visible = True
+        column_glav.visible=True
+        page.update()
+    images_mesta = ft.Row([ft.Stack([ft.Image(
+        fit=ft.ImageFit.FILL,
+        border_radius=ft.border_radius.all(5),
+        height=150,width=130,
+        src="https://s3-alpha-sig.figma.com/img/a515/8ac3/c13b4b6cd114a1b4e38cb9a9834bc3b5?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=Sd6gC-PBUu0TbqOT7VxuHRSQNDHWm9tl7iSkcfrQHsAW-pRWwtz3OsYKe-VKSrFLe0akTF3hg2rw-guE98XDj8g2cj2~tFHbLwPaqRBPtqSlHKwLdJPARGVT3l35E9SVt3kKeFgGsweEqUCdmlpJ9DZr8rBnuc4dfFtguxMtLxGoLVLDAO6NLI5D0wxeNPhQIarrQqfF79V178cH3IeYbFH2hb~HYvxANnPKVSIRC5gAXctoA6~3qZDCXYLckmBYy7Ha8CI2lgehztkAqiiJazHZJru0VVU015moZhQvJG-EW9OgXdGVXczQAJ-KWkSmA56mlJJvBdtIG4H0saxvBg__"),
+        ft.Text(value="\n\n\n\n\nПоднебесные\nзубья",weight=ft.FontWeight.BOLD,color='#FFFFFF')]),
+                      ft.Stack([ft.Image(
+        fit=ft.ImageFit.FILL,
+        border_radius=ft.border_radius.all(5),
+        height=150,width=130,
+        src="https://s3-alpha-sig.figma.com/img/56f0/a7df/55ca22d42613212d0b672ceb58467c8b?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=G3jaZUOnym8GexjYtYgtw2yJkjb2iTIKLYDA-1B1jJI0BEUcx83VqOAGkGiasUQt~R92jSSBkAS36yi1-5y-yyKjC4kQc3T5diSaZ9ke4qILc148MjKTsh1M6kirw6r0HzBCeTLSWOlaHyxVv6OhWuuKiZjPJXV2aPL~6f7QFi8ZlcgEff6JOvsJ~-QiQbHDcs6Zz6r5rUjJSeSoqqasI~rjGaPhFPSDy6uwg6IwGsU3MpL7hSrsvAgnFsoNIvPzOAyZk6t~wtLid9GEhn5OBJLZKEOSzuyl35i01TbrBcA1nTobI1s5Sa78nFZkr9pTabTcRpjUSRQDTcrIiObWVw__"),
+        ft.Text(value="\n\n\n\n\nЮгус", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+                      ft.Stack([ft.Image(
+        fit=ft.ImageFit.FILL,
+        border_radius=ft.border_radius.all(5),
+        height=150,width=130,
+        src="https://s3-alpha-sig.figma.com/img/272f/605c/25cba17e12e5992dc8fcbfa61abf4ed7?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=pEn1QSSpurUkjjc0wwZY8M-9mIeet7gvf8zL8F38mj0f1OR3wt6kvZZL9TxDE5wbzGCmzC1qD3FP3-P1GJUfRhhtWB1sSJUuxQgCii9gRhCQA8wRydDv2Bb8~22sBQ2wLC01Jjx-rXqa-zksdazB8ENoK4I9ugDsCRvWz-jhjPiukLrnSZXihdd-gocn~yiFAXzixRqCmxUaffKcOHa4RYlcuCVBnGrc8MMyAkibtvLZJqruXqhi7fDf~veHB-VosDJx5DAqLRfoAUh9imbfXLm7CyuVNg-WEoyHFPIIsCdlqVbv842~nj6DSXC1FjsKShDyDVjd0KDm8zmN7hobrg__"),
+        ft.Text(value="\n\n\n\n\nЧерный Салан", weight=ft.FontWeight.BOLD, color='#FFFFFF')])],
+        wrap = False, scroll = "always")
+    images_kafe = ft.Row([ft.Stack([ft.Image(
+        fit=ft.ImageFit.FILL,
+        border_radius=ft.border_radius.all(5),
+        height=150, width=130,
+        src="https://s3-alpha-sig.figma.com/img/91c4/a4e1/c5bd371b8c91936656dd8614ed056f01?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=cf5NNT8ufhuM8k4UdiagQjFZ8aZjbt1aisctY5hg71tMCBE6yG6SLZLqOnGCGTfw68uIyHsVAndcfkcLGfHnLcupaMEoCNKiAYGAIzJU0MXv9Gdeg1O8ih2OFxTcYBL4R8vVCC-sL1wHS~uLVi0Fvl4NoD2MMCSFF64z7A04vMX~aFXybScmC9tsCXkpvZv23GjMI~i-uI4-e1mt5jl-2mc110MssSga73ZaIANrVWr1v9GZGSvtAAb6Q2YsbRR8qYZIZfP5ALgIqVJJR6O~4wxDiy7k3~Dkx~SwT~ZF9Lj5bZ-h34b-HB~35ivTt6wsujwfnOplWoveV6R7DSYuNg__"),
+        ft.Text(value="\n\n\n\n\n\nАтлантик", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/d14f/5bbf/61c61ba1efc7360a113f02b800164259?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=Sc8Db76quOphznmSr4~4JMDnTst9uiEIE4P4f0gtrUeI9IlxZrBHKs7LgKIOvohm8z8OyT82Sqt5u7UIKIwt0InNdQbrtP2M9WG-0lAm9GoVMwBLh3s03eS79rOf4PYt5Ns1Sy7jfe6bTe0Us2lkUcEw93Yw1~-bdWQqg94DQvz11N3d7jTvG45DHWnjxyfgXrYY55Jt3whT0oir9zc~PJyk98y8tURuciSaIZj50upt3101rz0wiW4JqOudqtLHuCZavm4mL8ErGN0HD9YIXyWFzFRUL21imxrTS0yH0HM1aHX2bzKr34QRjVdock21CB2GN-1Nd7aXbkPNV0Q8pQ__"),
+            ft.Text(value="\n\n\n\n\nOрегано -\nИзба у реки", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/9b4c/aa42/f55e3bec607dd0295452572202c0b294?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=l2ZAaEi2y3JtdYYb3J56UdmwWwymq5Cu4LrAGue4FUqTZJT3vpU3KiYkMSgehaQs9R51TVbV9SKhZnapO19jcJrdawtyJDg1VBjsPaObZGC518zQbX~p8wZylmCZqe1IAmptHOpu9gXdM9vbwTrsvO9j3wkccPz~0bvdg2FK6qBdtZlWy~niXzDtWDuhZsL-sVfSXqu0VJSAoN-fqQWNBMeOWSezj9bL2KYyuaiWBCiw5GVKnvkfD7LXs~6KaLiPN4H~BHynyO5C57y3Bk54pprTSKNDaJTLI9na1mx3zN~Ibx5ZMHGlcI2FWAH4rKGe-XKi8v0omBAbUxcvsEd6Wg__"),
+            ft.Text(value="\n\n\n\n\n\nКафе Атмосфера", weight=ft.FontWeight.BOLD, color='#FFFFFF')])],
+        wrap=False, scroll="always")
+    images_gilyo = ft.Row([ft.Stack([ft.Image(
+        fit=ft.ImageFit.FILL,
+        border_radius=ft.border_radius.all(5),
+        height=150, width=130,
+        src="https://s3-alpha-sig.figma.com/img/95e2/af42/e46aadc4565ec90223fb9ce6b0bf8888?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=kYBBz~suvZokF1JG1uX1R1S~gynLD4vZcyziPEU~xugJRCa2N9A7DDamKyULS~mzfDwuZ8y~hFuTqEvm68H63vu~m86wFT4Nyjmx7otKoVhsZHRsprfu52DsuWX2rTyvM5ZV9OdrKDx-U5JP-~5t3HxV64bThhzhVyAjFgVOVasdPgx0mZetwiQYYAEEu1XWZsHI2fMbfGNv01ny3zKwplTW2eHYAjLEJHjr8UVbqYbXoJkrTBAl9jq2czyFGgKkdT7GJTfUvGNiXlcmNkPvmaOhe6HYfwwL0RFBOU7XjwmRIXMueNaQsijhnhs7u9TLmQj2XkNQMwXAhENg2eOgRw__"),
+        ft.Text(value="\n\n\n\n\nГостиница\nРобинзон Югус", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/353b/4823/2d0b5ab23853ee0b0474377abfc1b142?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=Gl1wNhe8-GdhnBVDxBIVNsJkzD5U2IDS5Sj2e3HiNzYNAn7QHsrSUM9aFZ0nc7eDlgwSQpxV8jlAsCHShhmz5hNS3l5BUuCaJ5y3CqOd99iUq7zvZxeyez1KxVcGu9dzMayQBc8w6ifPPYlyEVNU6jI-py5r4Tgdf1XJzaLQlhfDUJqyj29SzL41KoRmcVWkNer3AlEf5VWZssHn66zdW2as2u0~5NthRb6R0Ipmh1sOr7-OvtewcNLogW-az9S7KhZWHzhA2cRzx3zLNf3l-ayj-N5T~O0Duk3bB-Nd1KTIxnT2eVGFEwE-Lf9Y-dk497x9pgwOItfXg96S1tuKFg__"),
+            ft.Text(value="\n\n\n\n\n\nHotel CUBA", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/6741/021a/720efc40521f0ec1bf48d032fce256ce?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=MJ-fRfw~OJ4kSyjE9FskSk7L35b4xLU~11EVWwt5YxamVTEo8V5MTb0zNbM2uPJxDXlUVkkL-2C2tnjcuQCdq5NJvfJ9RwEvQV0uQSjke4NiIFqP3fhu8ulF-3wXhjQEYE~wSt4BPM4zIQmZqbGV27oj5VRpBC-p6~Wti68I8Wr0551wDJz2udHGyCb51CPD-PUUyeO2Z2dVfwRl-34dJDpbkXxxqimpFGxSa3EOIzVREdzBuBPkgO0v3zRUKOjGTkpf82aWgh2-4G5tVtgINadv-9rF6OP3ByxEhBaeiUDsYMETS5kdat4vb7xIjXvEnrFzsF77e-rpAYHxFs72BQ__"),
+            ft.Text(value="\n\n\n\n\nБаза отдыха\nОзерки", weight=ft.FontWeight.BOLD, color='#FFFFFF')])],
+        wrap=False, scroll="always")
+    images_activ = ft.Row([ft.Stack([ft.Container(ft.Image(
+        fit=ft.ImageFit.COVER,
+        border_radius=ft.border_radius.all(5),
+        height=150, width=130,
+        src="https://s3-alpha-sig.figma.com/img/4c57/03c9/1cd2bcd9ad73ceb4238d337e22dd533f?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=hK35bWza92mO96vq9CnGClaaFEbXgP89Gu2JpPATJ3v94BtJVrNqv0hAuYNje-mLc~M3wxTUTJph2pmaGw~9GoT0D54~HxEIUZDCywC0rayU7VNR0hq7gEeC4mcPzXd0KpGlAiOaz0xwq79ZzXpjPQzOcEZqIiW8loeCSj4Q0ty6pW0sDJYf3d8jLPqmCkEF7q1v7jn01wkEDFIDWZXmUS0maYAATHAo-7JlqWQviMLLw97deo~0S69KeamcWrJeOPLD4gYC-3-18sMQFGV2awcWg63V22Ale6kwjMOUQv2Cby0ZZC4pdEQPjvbOme0nYTEy3FoKs4C7feqNal63WA__")
+        ,bgcolor='#B6FCFF',border_radius=ft.border_radius.all(5)),
+        ft.Text(value="\n\n\n\n\nКупайтесь\nв бассейне", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Container(ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/0981/b1a3/1d678cdf36b25556afba8be549f8b631?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=EMtXAX68otxqzE3u5O~pnRY5I20tOBuiSj31JPITU6LqXqwVelbln71lZn1kuF10flPytiTsAuL8zMKC4iaHBSVrYdKecq6AbsGNKt3zHuHXTKq67C5fnJT0KtC5anc-cEDH~r1W-TOim8Plcuz9RpGJeEs-lwswW-u-35YpeySL7o-nsWuT9oqNgtUZ0BXiYxTuoUyFEKYrVTS2Fj3dk-PHdvyYach5AezFQM0SdkwvkVMRTZz8-ZiG20xzrtcg0W9xglCAaMTet3sByrmbY4-tt3NMpS4aUp2D0NKS3MjVybY2Qs4Y9Jmoj0DEIwUTeU0FcGMyVhkwqGhcNr8NEA__")
+        ,bgcolor='#7B68EE',border_radius=ft.border_radius.all(5)),
+            ft.Text(value="\n\n\n\n\nКатайтесь\nна Югусе", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Container(ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/bdd5/2e3f/32201efe9a98e5e2a8d688df8cdc86f7?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=bX-nL7S1iWqVMTkGnBM-qssC-ACaswebddZ6MSXUrUG8cg6o8JRg2R68IPaKFDwxTd~I1RyODTtICYzE-GgtzrOb8ZEldzznewu-7iaN0mL6v5so9mSpjqw7KYt681a8MxjnEEkqfpYQz~9HoS1cj6JMibGGHseVQ1ynZi-kh01naRVL9uoKpwhGRGJDxJaQ9BEcR1JOYPl4X2vVJvzyNM~bpjzlUGeKlnvbw7x4RZpa23btBc7fUMIjsNNSiFeIwvD-n8DBrsm6usjh1YmovH2d-ZF5GguMtg2Jr3eDJMU6ANFrYKEHaMfuqnoNWjXgu9upxdy0RnpvCpe5VtXnqA__"),
+            bgcolor='#FFBD84',border_radius=ft.border_radius.all(5)),
+            ft.Text(value="\n\n\n\n\nИграйте в\nхоккей", weight=ft.FontWeight.BOLD, color='#FFFFFF')]),
+        ft.Stack([ft.Container(ft.Image(
+            fit=ft.ImageFit.FILL,
+            border_radius=ft.border_radius.all(5),
+            height=150, width=130,
+            src="https://s3-alpha-sig.figma.com/img/7f12/2c9d/f2f09b9bdffbd34fa3ca500457cc31bc?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=VsnJ3gpPdG6OREkcajvoA9Wmr-UQHxXunsEwIB5RHW4WqGnQRen0xfG5ruBpD4HvZo6YWT9EcTjF9IqSqQHAlex3zwHiKFofwqPtz9nRxJ4b1ZcYVRvHiSogr2YCYvnDNlNj5MsKeWkWa6oQyLTabM4908WpX4uYr3EkypBjelrUpPAdro56whsvy5JmblPNijSXXUD21gLPh295DTVpL~1zT~XhGgIMIMPqz7pBZAn09efcbU4SwflFGoM131npv~dIxmx1zeWNTOkqjqJUXnL98d1h7ILbRVY~Cyv96EB8gElGv5yGidqADaQxuEyNkNxYD04u0H9fYRDLxlH64A__"),
+            bgcolor='#B3EA9F',border_radius=ft.border_radius.all(5)),
+            ft.Text(value="\n\n\n\n\nОбщайтесь\nс животныыми", weight=ft.FontWeight.BOLD, color='#FFFFFF')])],
+        wrap=False, scroll="always")
+    text_mesta=ft.Text(value="Места",size=25,weight=ft.FontWeight.BOLD,color='#002309')
+    text_activ = ft.Text(value="Активности", size=25, weight=ft.FontWeight.BOLD, color='#002309')
+    text_restor = ft.Text(value="Рестораны", size=25, weight=ft.FontWeight.BOLD, color='#002309')
+    text_gostin = ft.Text(value="Гостиницы", size=25, weight=ft.FontWeight.BOLD, color='#002309')
+    search_icon = ft.IconButton(
+        icon=ft.icons.SEARCH, icon_color='#808080',
+        tooltip="Поиск",
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=40)
+        )
+    )
+    settings_icon = ft.IconButton(
+        icon=ft.icons.SETTINGS, icon_color='#808080',
+        tooltip="Настройки",
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=40)
+        )
+    )
+    text_field = ft.TextField(
+        hint_text="ПОИСК",
+        expand=False,
+        width=200,
+        border_color=ft.colors.TRANSPARENT,
+        border_radius=40,
+        color='#000000'
+    )
+    img_map=ft.Image(src="https://s3-alpha-sig.figma.com/img/ab3d/b9ed/91db198be22030a9d6c72ed4f2d3c079?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=WXz4YFA15Wo3lb96c8CCp3G9ZJRPVnYs5iC0B97vZpyCrEM0gsGUpU~qO7d7WjY1eJPEaSjf-lFPVLkW6MIaQjtLmB6oguDI71Lb~mfiQhwgHo5BDLrecPXArNwGmy92j~Ay8DltseWQMOJkqRITGlUdsyMhXJ~KjkGoRcdCEV150s2yK3e2I7R23G2dRJZKDpdXvCsCcCj1DW6MRs9PmtSb8grR5P~0Xe3yH~Cw4EdDoijkax5xU6PjEjkZcJFAJTYF4hNzwXDVCF8rXfu-kWFbnFmDzzvZGdDjXo~ed~D1QBvHGGuBhLXQhZQddiiJXOJ0g0ByIMVL~8U7B3TB7w__",
+                     width=350,height=560,fit=ft.ImageFit.COVER)
+    search_Row = ft.Row(
+        controls=[search_icon, text_field, settings_icon],
+        alignment=ft.MainAxisAlignment.CENTER, spacing=10)
+    search_container = ft.Container(content=search_Row, padding=ft.padding.all(10),
+                                    bgcolor=ft.colors.WHITE, border_radius=40, width=350, height=65)
+    map_st=ft.Stack([img_map,search_container])
+    page.add(map_st)
+    map_st.visible = False
+    profile_Row=ft.Column([ft.Image(src="https://s3-alpha-sig.figma.com/img/f6fa/98d6/0eb1a93bf9c6205fd0f20124db4dcf3e?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=Md3EoUg~17531GzxCfbZulCDhyxhWi~0OejSZ-970KeIewST6Mp1UVNRdcD3hvS3giwz~NeIC0Ul7MuTdf~IU~EGjxykAxSubcwhCjjvl~2XU6GwuREn-4dSFQBoKHQGzlBxRh6-F7nO4bdZe0tgbTM3vD5Lq~zFOVg9Z~oAmqcWHNI8wjtaOWHbN-MIrYuM07POz7Dz-73rQCzVQZsNNhw4winqgJKmcZMR~ajy4aY-xeQA3VFVUXWyOAttAjU7Ho-vnvILK6HOLlj7~hk4niHucLyQVGDKN3sXquqbw57AenxkJ~Mp3NdikW0nWwLorPKa48p-gNEihU7w25rIvw__"
+                                    ,width=100,height=100,fit=ft.ImageFit.COVER,
+                                    border_radius=ft.border_radius.all(50)),
+                           ft.Text(value="Софья Иванова")],alignment=ft.alignment.center,
+                          horizontal_alignment=ft.alignment.bottom_center)
+    profile_conteiner = ft.Container(content=profile_Row,height=150, width=350, bgcolor='#00321A',
+                                     alignment=ft.alignment.center)
+    profile_conteiner.visible=False
+    search_container.visible=False
+    page.add(profile_conteiner)
+    column_glav=ft.Column([search_container,text_mesta,images_mesta,
+                           text_activ,images_activ,
+                           text_restor,images_kafe,
+                           text_gostin,images_gilyo])
+    page.add(column_glav)
+    column_glav.visible=False
+    page.update()
+    #turistic_places_elements
+    #Ygus
+    Ygus = ft.Text(value="Вершина Югуса")
+    Terenkyr = ft.Text(value="Тропа теренкур")
+    Tramplinney_center=ft.Text(value="Трамплинный центер")
+    vekat_gore=ft.Text(value="Выкат горы")
+    probegatsa_vverh_do_nebes=ft.Text(value="Пробежаться вверх до небес")
+    podnatsa_na_vershinu_na_podyumnike=ft.Text(value="Подняться на вершину на подъемнике")
+    proity_sport_trasy=ft.Text(value="Пройти спортивную трассу")
+    #page.add(Ygus)
+    #page.add(Terenkyr)
+    #page.add(Tramplinney_center)
+    #page.add(vekat_gore)
+    #page.add(probegatsa_vverh_do_nebes)
+    #page.add(podnatsa_na_vershinu_na_podyumnike)
+    #page.add(proity_sport_trasy)
+    Ygus.visible=False
+    Terenkyr.visible=False
+    Tramplinney_center.visible=False
+    vekat_gore.visible=False
+    probegatsa_vverh_do_nebes.visible=False
+    podnatsa_na_vershinu_na_podyumnike.visible=False
+    proity_sport_trasy.visible=False
+    #Podnebesneye_zubiya
+    vershine_podnebesneh=ft.Text(value="Вершины поднебесных")
+    Ozero_vepusknikov=ft.Text(value="Озеро выпускников")
+    dolina_tesaychi_ruchuv=ft.Text(value="долина тысячи ручьев")
+    algui=ft.Text(value="Алгуй")
+    vverh_v_nebo_i_vniz_pod_zemlu=ft.Text(value="Вверх в небо и вниз под землю")
+    burl_reki_i_meditaciya_rebalki=ft.Text(value="Бурлящие реки и медитация рыбалки")
+    dolini_5_metr_puhl=ft.Text(value="Долины пятиметрового пухляка")
+    #page.add(vershine_podnebesneh)
+    #page.add(Ozero_vepusknikov)
+    #page.add(dolini_5_metr_puhl)
+    #page.add(dolina_tesaychi_ruchuv)
+    #page.add(vverh_v_nebo_i_vniz_pod_zemlu)
+    #page.add(algui)
+    #page.add(burl_reki_i_meditaciya_rebalki)
+    algui.visible = False
+    burl_reki_i_meditaciya_rebalki.visible = False
+    vershine_podnebesneh.visible = False
+    vverh_v_nebo_i_vniz_pod_zemlu.visible = False
+    dolini_5_metr_puhl.visible = False
+    dolina_tesaychi_ruchuv.visible = False
+    Ozero_vepusknikov.visible = False
+    def open_user_profile():
+        column_glav.visible=False
+        profile_conteiner.visible = True
+        page.update()
+    def open_user_glav_page():
+        page.bgcolor='#E8FFDF'
+        column_glav.visible=True
+        search_container.visible=True
+        profile_conteiner.visible=False
+        page.update()
+    def open_profile(index):
+        new_user_enter=0
+        if index == 0:
+            open_user_glav_page()
+            map_st.visible = False
+            prof_inf.visible = False
+            page.update()
+        elif index == 1:
+            profile_conteiner.visible = False
+            column_glav.visible=False
+            map_st.visible=True
+            prof_inf.visible = False
+            page.update()
+        elif index == 2:
+            open_user_profile()
+            map_st.visible = False
+            prof_inf.visible=True
+            page.update()
+    prof_inf = ft.Text(value=f"", size=15,color='#00360E',weight=ft.FontWeight.BOLD)
+    page.navigation_bar = ft.CupertinoNavigationBar(
+        bgcolor='#E8FFDF',
+        inactive_color='#00360E',
+        active_color='#178F00',
+        on_change=lambda e:open_profile(e.control.selected_index),
+        destinations=[
+            ft.NavigationBarDestination(icon=ft.icons.HOME_FILLED,label="Главная"),
+            ft.NavigationBarDestination(icon=ft.icons.MAP,label="Карта"),
+            ft.NavigationBarDestination(icon=ft.icons.ACCOUNT_CIRCLE,label="Профиль"),
+        ]
+    )
+    page.navigation_bar.visible=False
     #reistr_window_elements
-    name_field_reg = ft.TextField(value="", hint_text="Никнейм", width=300)
-    last_name_field_reg = ft.TextField(value="", hint_text="Имя", width=300)
-    otchestvo_field_reg = ft.TextField(value="", hint_text="Фамилия", width=300)
-    pas_field_reg=ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
-    age_field_reg = ft.TextField(value="", hint_text="Возраст", width=300)
-    city_field_reg = ft.TextField(value="", hint_text="Город", width=300)
-    pol_text_reg=ft.Text(value="Выберите пол")
+    reg_text=ft.Text(value="Регистрация",size=30, color='#FFFFFF')
+    name_field_reg = ft.TextField(value="", hint_text="Никнейм", width=300,border_color='#FFFFFF')
+    last_name_field_reg = ft.TextField(value="", hint_text="Имя", width=300,border_color='#FFFFFF')
+    otchestvo_field_reg = ft.TextField(value="", hint_text="Фамилия", width=300,border_color='#FFFFFF')
+    pas_field_reg=ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True,width=300,border_color='#FFFFFF')
+    age_field_reg = ft.TextField(value="", hint_text="Возраст", width=300,border_color='#FFFFFF')
+    city_field_reg = ft.TextField(value="", hint_text="Город", width=300,border_color='#FFFFFF')
+    pol_text_reg=ft.Text(value="Выберите пол",size=12, color='#FFFFFF')
     pol_vebor = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Мужской", label="Мужской"),
-        ft.Radio(value="Женский", label="Женский")]))
-    reg_but=ft.ElevatedButton(text="Зарегистроваться", on_click=registration)
+        ft.Radio(value="Мужской", label="Мужской",active_color='#1DB100'),
+        ft.Radio(value="Женский", label="Женский",active_color='#1DB100')]))
+    reg_but=ft.ElevatedButton(content=ft.Text(value="Зарегестрироваться", color='#FFFFFF'), on_click=registration,bgcolor='#1DB100')
     page.reg_snackbar = ft.SnackBar(content=ft.Text(f"Вы не заполнили поле {field_not}"),action="alright")
-    reg=ft.Column([name_field_reg,last_name_field_reg,otchestvo_field_reg,pas_field_reg,
+    reg=ft.Column([reg_text,name_field_reg,last_name_field_reg,otchestvo_field_reg,pas_field_reg,
                    age_field_reg,pol_text_reg,pol_vebor,city_field_reg,
-                   reg_but])
-    reg_column=ft.Container(content=reg)
+                   reg_but],alignment=ft.alignment.center)
+    reg_column=ft.Container(content=reg,alignment=ft.alignment.center)
     dlg_reg = ft.AlertDialog(
         modal=True,
         title=ft.Text("Подтвердите пожалуйста"),
         content=ft.Text("Хотите перейти ко входу?"),
         actions=[
-            ft.TextButton("Да", on_click=open_vhod_window_lambda),
-            ft.TextButton("Нет", on_click=close_dlg),
+            ft.TextButton("Да", on_click=open_vhod_window_lambda, style=ft.ButtonStyle(color='#FFFFFF',bgcolor='#1DB100')),
+            ft.TextButton("Нет", on_click=close_dlg, style=ft.ButtonStyle(color='#FFFFFF',bgcolor='#1DB100')),
         ],
-        actions_alignment=ft.MainAxisAlignment.END,
+        actions_alignment=ft.MainAxisAlignment.END,bgcolor='#00321A'
     )
-
+    start_text=ft.Text(value="Откройте для себя красоты Междуреченска в одно касание!",size=40,color='#FFFFFF',font_family="Oswald")
+    start_but=ft.ElevatedButton(content=ft.Text(value="Начать", color='#FFFFFF'),on_click=nachat,bgcolor='#1DB100')
     #vhd_window_elements
-    name_field_vhod=ft.TextField(value="", hint_text="Имя")
-    pas_field_vhod = ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True)
-    vhod_but=ft.ElevatedButton(text="Вход",on_click=vhod_ac)
-    vhod=ft.Column([name_field_vhod,pas_field_vhod,vhod_but])
-    vhod_column=ft.Container(content=vhod)
-
+    vhod_text=ft.Text(value="Вход",size=30,color='#FFFFFF')
+    name_field_vhod=ft.TextField(value="", hint_text="Никенейм",border_color='#FFFFFF')
+    pas_field_vhod = ft.TextField(hint_text="Пароль", password=True, can_reveal_password=True,border_color='#FFFFFF')
+    vhod_but=ft.ElevatedButton(content=ft.Text(value="Вход", color='#FFFFFF'),on_click=vhod_ac,bgcolor='#1DB100')
+    vhod=ft.Column([vhod_text, name_field_vhod,pas_field_vhod,vhod_but],alignment=ft.alignment.center)
+    vhod_column=ft.Container(content=vhod,alignment=ft.alignment.center)
     #strt_window_elements
-    go_to_reg=ft.ElevatedButton(text="Регистрация",on_click=open_reg_window)
-    go_to_vhod=ft.ElevatedButton(text="Вход",on_click=open_vhod_window)
-    back_start_but=ft.ElevatedButton(text="Назад", on_click=back_start)
-    start = ft.Column([go_to_reg, go_to_vhod, back_start_but])
+    go_to_reg=ft.ElevatedButton(content=ft.Text(value="Регистрация", color='#FFFFFF'),on_click=open_reg_window,bgcolor='#1DB100')
+    go_to_vhod=ft.ElevatedButton(content=ft.Text(value=" Вход ", color='#FFFFFF'),on_click=open_vhod_window,bgcolor='#1DB100')
+    back_start_but=ft.ElevatedButton(content=ft.Text(value="Назад", color='#FFFFFF'), on_click=back_start,bgcolor='#1DB100')
+    start = ft.Column([go_to_reg, go_to_vhod, back_start_but],alignment=ft.alignment.center)
     start_column = ft.Container(content=start)
-
     #adin_panel_elements
     admin_text=ft.Text(value="Admin text")
-
     #user_panel_elementes
     user_text=ft.Text(value="User text")
-    image=ft.Image(src=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMTIB_lAcv8_itguNaAIOdfNjXMRFTSaxA6g&s",
-                width=300,
-                height=300)
-    all_column=ft.Column([admin_text,user_text,reg_column,vhod_column,start_column])
-    st = ft.Stack([image,all_column])
-    image.visible=True
-
+    image=ft.Image(src=f"https://s3-alpha-sig.figma.com/img/48b3/0f4e/94c00e74d7d5182ad4906f298204af5e?Expires=1731888000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=QYzyHFEo7yS1paiqqWVYL6MTaaA0bxovSN6NyOOQcr-Oy6NTjCLAEqG~0xTQpaBFnc8WYIYt9pq7mIIIgfEn9kxBvf1k5H4x1nV3s1WxOxM3Na3BnzI-wHk9eJLomix1LtD-hFvX~~U0AQ1aNtEfFd2lXHTaINou3sl6f9wEycQpkwne5ABGE19QypVkQUZSXIVs-pXhlMtGcg5xpolq~W2BdOy~lvSxgA10uO5SH5U-Tna6J5ejdjDHGY9ERGaye85weqfDGYEJuz9uKMycet~w3agG93Dcn77P-NMkh6C3mwbpj7prhX2B3fYv0qY-owCl3t8K3eu49e-aZTPHnw__",
+                width=350,
+                height=590, fit=ft.ImageFit.COVER)
     #anketa_elements
-    q1 = ft.Text(value="Каков ваш основной мотив путешествия?")
-    q2 = ft.Text(value="Какой уровень активности вам подходит?")
-    q3 = ft.Text(value="Есть ли у вас какие-либо медицинские условия или ограничения по здоровью?")
-    q4 = ft.Text(value="Страдали ли вы в прошлом от каких-либо заболеваний, которые могут повлиять на ваше участие в туристических маршрутах?")
-    q5 = ft.Text(value="Имеете ли вы аллергии на продукты или медикаменты?")
-    q6 = ft.Text(value="Есть ли у вас ограничения по физическим нагрузкам, которые мы должны учесть при планировании маршрута?")
-    q7 = ft.Text(value="Что вам больше всего понравилось в предыдущих путешествиях?")
-
+    q1 = ft.Text(value="Каков ваш основной мотив путешествия?",color='#002309')
+    q2 = ft.Text(value="Какой уровень активности вам подходит?",color='#002309')
+    q3 = ft.Text(value="Есть ли у вас какие-либо медицинские условия или ограничения по здоровью?",color='#002309')
+    q4 = ft.Text(value="Страдали ли вы в прошлом от каких-либо заболеваний, которые могут повлиять на ваше участие в туристических маршрутах?",color='#002309')
+    q5 = ft.Text(value="Имеете ли вы аллергии на продукты или медикаменты?",color='#002309')
+    q6 = ft.Text(value="Есть ли у вас ограничения по физическим нагрузкам, которые мы должны учесть при планировании маршрута?",color='#002309')
+    q7 = ft.Text(value="Что вам больше всего понравилось в предыдущих путешествиях?",color='#002309')
     ans_vebor1 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Отдых и релаксация", label="Отдых и релаксация"),
-        ft.Radio(value="Приключения и новые впечатления", label="Приключения и новые впечатления"),
-        ft.Radio(value="Культурные и исторические исследования", label="Культурные и исторические исследования"),
-        ft.Radio(value="Деловые поездки", label="Деловые поездки")]))
+        ft.Radio(value="Отдых и релаксация", label="Отдых и релаксация",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Приключения и новые впечатления", label="Приключения и новые впечатления",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Культурные и исторические исследования", label="Культурные и исторические исследования",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Деловые поездки", label="Деловые поездки",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
     ans_vebor2 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Низкий (спокойные прогулки)", label="Низкий (спокойные прогулки)"),
-        ft.Radio(value="Средний (некоторые физические нагрузки)", label="Средний (некоторые физические нагрузки)"),
-        ft.Radio(value="Высокий (активные виды спорта)", label="Высокий (активные виды спорта)"),
-        ft.Radio(value="Очень высокий (экстремальные виды активностей)", label="Очень высокий (экстремальные виды активностей)")]))
+        ft.Radio(value="Низкий (спокойные прогулки)", label="Низкий (спокойные прогулки)",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Средний (некоторые физические нагрузки)", label="Средний (некоторые физические нагрузки)",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Высокий (активные виды спорта)", label="Высокий (активные виды спорта)",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Очень высокий (экстремальные виды активностей)", label="Очень высокий (экстремальные виды активностей)",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
     ans_vebor3 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Нет, у меня нет ограничений", label="Нет, у меня нет ограничений"),
-        ft.Radio(value="Да, я страдаю от аллергий", label="Да, я страдаю от аллергий"),
-        ft.Radio(value="Да, у меня есть хронические заболевания", label="Да, у меня есть хронические заболевания"),
-        ft.Radio(value="Да, мне нужно особое внимание", label="Да, мне нужно особое внимание")]))
+        ft.Radio(value="Нет, у меня нет ограничений", label="Нет, у меня нет ограничений",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, я страдаю от аллергий", label="Да, я страдаю от аллергий",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, у меня есть хронические заболевания", label="Да, у меня есть хронические заболевания",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, мне нужно особое внимание", label="Да, мне нужно особое внимание",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
     ans_vebor4 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Нет, я здоров", label="Нет, я здоров"),
-        ft.Radio(value="Да, у меня были серьезные заболевания", label="Да, у меня были серьезные заболевания"),
-        ft.Radio(value="Да, у меня были временные недомогания", label="Да, у меня были временные недомогания"),
-        ft.Radio(value="Не уверен, возможно, были", label="Не уверен, возможно, были")]))
+        ft.Radio(value="Нет, я здоров", label="Нет, я здоров",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, у меня были серьезные заболевания", label="Да, у меня были серьезные заболевания",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, у меня были временные недомогания", label="Да, у меня были временные недомогания",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Не уверен, возможно, были", label="Не уверен, возможно, были",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
     ans_vebor5 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Нет, у меня нет аллергий", label="Нет, у меня нет аллергий"),
-        ft.Radio(value="Да, на определенные продукты", label="Да, на определенные продукты"),
-        ft.Radio(value="Да, на медикаменты", label="Да, на медикаменты"),
-        ft.Radio(value="Да, на оба", label="Да, на оба")]))
+        ft.Radio(value="Нет, у меня нет аллергий", label="Нет, у меня нет аллергий",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, на определенные продукты", label="Да, на определенные продукты",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, на медикаменты", label="Да, на медикаменты",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, на оба", label="Да, на оба",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
     ans_vebor6 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Нет, никаких ограничений", label="Нет, никаких ограничений"),
-        ft.Radio(value="Да, мне нельзя поднимать тяжести", label="Да, мне нельзя поднимать тяжести"),
-        ft.Radio(value="Да, мне нельзя долго ходить", label="Да, мне нельзя долго ходить"),
-        ft.Radio(value="Да, мне нужно больше времени для отдыха", label="Да, мне нужно больше времени для отдыха")]))
+        ft.Radio(value="Нет, никаких ограничений", label="Нет, никаких ограничений",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, мне нельзя поднимать тяжести", label="Да, мне нельзя поднимать тяжести",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, мне нельзя долго ходить", label="Да, мне нельзя долго ходить",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Да, мне нужно больше времени для отдыха", label="Да, мне нужно больше времени для отдыха",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
     ans_vebor7 = ft.RadioGroup(content=ft.Column([
-        ft.Radio(value="Красивые пейзажи", label="Красивые пейзажи"),
-        ft.Radio(value="Культурные мероприятия", label="Культурные мероприятия"),
-        ft.Radio(value="Вкусная еда", label="Вкусная еда"),
-        ft.Radio(value="Встречи с новыми людьми", label="Встречи с новыми людьми")]))
-    otvetit=ft.ElevatedButton(text="Сохранить ответы",on_click=otvetit_na_q)
-    ans_q_column=(ft.Column([q1,ans_vebor1,q2,ans_vebor2,q3,ans_vebor3,
+        ft.Radio(value="Красивые пейзажи", label="Красивые пейзажи",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Культурные мероприятия", label="Культурные мероприятия",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Вкусная еда", label="Вкусная еда",active_color='#1DB100',label_style=ft.TextStyle(color='#002309')),
+        ft.Radio(value="Встречи с новыми людьми", label="Встречи с новыми людьми",active_color='#1DB100',label_style=ft.TextStyle(color='#002309'))]))
+    otvetit=ft.ElevatedButton(content=ft.Text(value="Сохранить ответы",color='#FFFFFF'),on_click=otvetit_na_q,bgcolor='#1DB100')
+    anketa_text=ft.Text(value="Анкета для предоставления вам подходяших мест",color='#002309',size=20)
+    ans_q_column=(ft.Column([anketa_text,q1,ans_vebor1,q2,ans_vebor2,q3,ans_vebor3,
                              q4,ans_vebor4,q5,ans_vebor5,q6,ans_vebor6,
                              q7,ans_vebor7,otvetit]))
     ans_column=(ft.Column([ans_vebor1,ans_vebor2,ans_vebor3,
                            ans_vebor4,ans_vebor5,ans_vebor6,
                            ans_vebor7]))
     ans_q=ft.Container(content=ans_q_column)
-
-    page.add(ans_q)
-    ans_q.visible=False
+    all_column = ft.Column(
+        [ans_q, start_text, start_but, admin_text, user_text, reg_column, vhod_column, start_column],
+        alignment=ft.alignment.center)
+    st = ft.Stack([image, all_column], alignment=ft.alignment.center)
+    image.visible = True
+    go_to_reg.visible = False
+    go_to_vhod.visible = False
     page.add(st)
+    ans_q.visible=False
     close_reg_window()
     close_vhod_window()
     start1()
